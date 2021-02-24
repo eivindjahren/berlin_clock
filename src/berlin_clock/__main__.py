@@ -73,9 +73,7 @@ def generate_top_row(timestamp):
         return "O"
 
 
-def print_row_clock(timestamp):
-    print(generate_top_row(timestamp))
-
+def generate_row_clock_strings(timestamp):
     (
         first_row_lamps,
         second_row_lamps,
@@ -83,13 +81,30 @@ def print_row_clock(timestamp):
         fourth_row_lamps,
     ) = convert_to_blocks(timestamp)
 
-    print(generate_string(first_row_lamps))
-    print(generate_string(second_row_lamps))
-    print(generate_special_string(third_row_lamps))
-    print(generate_string(fourth_row_lamps, color="R"))
+    return [
+        generate_top_row(timestamp),
+        generate_string(first_row_lamps),
+        generate_string(second_row_lamps),
+        generate_special_string(third_row_lamps),
+        generate_string(fourth_row_lamps, color="R"),
+    ]
 
 
-def print_berlin_clock(time):
+def print_row_clock(stdscr, timestamp):
+    top_row, row_one, row_two, row_three, row_four = generate_row_clock_strings(
+        timestamp
+    )
+
+    stdscr.addstr(1, 4, top_row)
+    stdscr.addstr(2, 3, row_one)
+    stdscr.addstr(3, 3, row_two)
+    stdscr.addstr(4, 0, row_three)
+    stdscr.addstr(5, 3, row_four)
+    stdscr.addstr(6, 0, "")
+    stdscr.refresh()
+
+
+def print_berlin_clock(stdscr, time):
     """
     Prints a representation of the given time similar to The Berlin Uhr. On the
     top of the berlin uhr there is a yellow lamp that blinks on/off every two
@@ -117,11 +132,11 @@ def print_berlin_clock(time):
     :param time: A datetime object for the time to be displayed.
     """
     current_time = time.strftime("%H:%M:%S")
-    print("\rCurrent Time =", current_time)
-    print_row_clock(current_time)
+    stdscr.addstr(0, 0, "Current Time ={}".format(current_time))
+    print_row_clock(stdscr, current_time)
 
 
-def run_berlin_clock(args):
+def run_berlin_clock(stdscr, args):
     """
     Runs print_berlin_clock every second.
 
@@ -130,7 +145,7 @@ def run_berlin_clock(args):
     scheduler = sched.scheduler(time.time, time.sleep)
 
     def event_loop():
-        print_berlin_clock(datetime.now())
+        print_berlin_clock(stdscr, datetime.now())
         scheduler.enter(1, 1, event_loop)
 
     scheduler.enter(1, 1, event_loop)
@@ -143,7 +158,7 @@ def parse_args_and_run(argv):
 
     :param argv: List of arguments, e.g. ["berlin_clock", "-v"]
     """
-    run_berlin_clock(parse_args(argv))
+    wrapper(run_berlin_clock, parse_args(argv))
 
 
 def main():

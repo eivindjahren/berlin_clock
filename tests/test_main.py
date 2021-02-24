@@ -4,7 +4,7 @@ from berlin_clock.__main__ import (
     parse_time,
     convert_to_blocks,
     generate_string,
-    print_row_clock,
+    generate_row_clock_strings,
     generate_special_string,
 )
 
@@ -86,16 +86,14 @@ def test_generate_special_row(test_input, expected):
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        ("00:00:00", "Y\nOOOO\nOOOO\nOOOOOOOOOOO\nOOOO\n"),
-        ("01:00:00", "Y\nOOOO\nYOOO\nOOOOOOOOOOO\nOOOO\n"),
-        ("06:00:00", "Y\nYOOO\nYOOO\nOOOOOOOOOOO\nOOOO\n"),
-        ("06:05:00", "Y\nYOOO\nYOOO\nYOOOOOOOOOO\nOOOO\n"),
-        ("06:17:01", "O\nYOOO\nYOOO\nYYROOOOOOOO\nRROO\n"),
-        ("13:17:02", "Y\nYYOO\nYYYO\nYYROOOOOOOO\nRROO\n"),
-        ("13:38:03", "O\nYYOO\nYYYO\nYYRYYRYOOOO\nRRRO\n"),
+        ("00:00:00", ["Y", "OOOO", "OOOO", "OOOOOOOOOOO", "OOOO"]),
+        ("01:00:00", ["Y", "OOOO", "YOOO", "OOOOOOOOOOO", "OOOO"]),
+        ("06:00:00", ["Y", "YOOO", "YOOO", "OOOOOOOOOOO", "OOOO"]),
+        ("06:05:00", ["Y", "YOOO", "YOOO", "YOOOOOOOOOO", "OOOO"]),
+        ("06:17:01", ["O", "YOOO", "YOOO", "YYROOOOOOOO", "RROO"]),
+        ("13:17:02", ["Y", "YYOO", "YYYO", "YYROOOOOOOO", "RROO"]),
+        ("13:38:03", ["O", "YYOO", "YYYO", "YYRYYRYOOOO", "RRRO"]),
     ],
 )
-def test_row_clock(capsys, test_input, expected):
-    print_row_clock(test_input)
-    captured = capsys.readouterr()
-    assert captured.out == expected
+def test_row_clock(test_input, expected):
+    assert generate_row_clock_strings(test_input) == expected
