@@ -34,6 +34,46 @@ def parse_args(argv):
     return parser.parse_args(argv[1:])
 
 
+def print_top_circle(time):
+    if time.second % 2:
+        print("  Y")
+    else:
+        print("  O")
+
+
+def print_top_row(time):
+    row = ""
+    for five_mult in range(5, 24, 5):
+        if time.hour >= five_mult:
+            row += "R"
+        else:
+            row += "O"
+    print(row)
+
+
+def print_second_row(time):
+    num_on = time.hour % 5
+    print("R" * num_on + "O" * (4 - num_on))
+
+
+def print_third_row(time):
+    row = ""
+    for five_mult in range(5, 60, 5):
+        if time.minute >= five_mult:
+            if five_mult % 15 == 0:
+                row += "R"
+            else:
+                row += "Y"
+        else:
+            row += "O"
+    print(row)
+
+
+def print_last_row(time):
+    num_on = time.minute % 5
+    print("Y" * num_on + "O" * (4 - num_on))
+
+
 def print_berlin_clock(time):
     """
     Prints a representation of the given time similar to The Berlin Uhr. On the
@@ -61,8 +101,12 @@ def print_berlin_clock(time):
 
     :param time: A datetime object for the time to be displayed.
     """
-    # TODO This only displays the time in a conventional format.
-    print("Current Time =", time.strftime("%H:%M:%S"))
+    print_top_circle(time)
+    print_top_row(time)
+    print_second_row(time)
+    print_third_row(time)
+    print_last_row(time)
+    print("")
 
 
 def run_berlin_clock(args):
