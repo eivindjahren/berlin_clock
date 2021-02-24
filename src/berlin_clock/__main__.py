@@ -3,8 +3,26 @@ import sched
 import sys
 import time
 from datetime import datetime
+from itertools import cycle, islice
+from functools import partial
+from curses import wrapper
 
 from berlin_clock import __version__
+
+
+def convert_to_blocks(timestamp):
+    hours, minutes, seconds = parse_time(timestamp)
+
+    large_hours = hours // 5
+    small_hours = hours - (large_hours * 5)
+    large_minutes = minutes // 5
+    small_minutes = minutes - (large_minutes * 5)
+
+    return [large_hours, small_hours, large_minutes, small_minutes]
+
+
+def parse_time(timestamp):
+    return [int(timestamp[:2]), int(timestamp[3:5]), int(timestamp[6:8])]
 
 
 def make_parser(prog):
@@ -34,6 +52,43 @@ def parse_args(argv):
     return parser.parse_args(argv[1:])
 
 
+def print_image_clock(timestamp):
+    timeblocks = convert_to_blocks(timestamp)
+
+
+def generate_string(n, color="Y"):
+    return color * n + "O" * (4 - n)
+
+
+def generate_special_string(n):
+    basis = "YYR"
+    return "".join(islice(cycle(basis), n)) + "O" * (11 - n)
+
+
+def generate_top_row(timestamp):
+    _, _, seconds = parse_time(timestamp)
+    if seconds % 2 == 0:
+        return "Y"
+    else:
+        return "O"
+
+
+def print_row_clock(timestamp):
+    print(generate_top_row(timestamp))
+
+    (
+        first_row_lamps,
+        second_row_lamps,
+        third_row_lamps,
+        fourth_row_lamps,
+    ) = convert_to_blocks(timestamp)
+
+    print(generate_string(first_row_lamps))
+    print(generate_string(second_row_lamps))
+    print(generate_special_string(third_row_lamps))
+    print(generate_string(fourth_row_lamps, color="R"))
+
+
 def print_berlin_clock(time):
     """
     Prints a representation of the given time similar to The Berlin Uhr. On the
@@ -61,8 +116,9 @@ def print_berlin_clock(time):
 
     :param time: A datetime object for the time to be displayed.
     """
-    # TODO This only displays the time in a conventional format.
-    print("Current Time =", time.strftime("%H:%M:%S"))
+    current_time = time.strftime("%H:%M:%S")
+    print("\rCurrent Time =", current_time)
+    print_row_clock(current_time)
 
 
 def run_berlin_clock(args):
