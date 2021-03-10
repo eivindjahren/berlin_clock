@@ -4,6 +4,7 @@ import sys
 import time
 from datetime import datetime
 
+import berlin_clock.berlin_clock as bc
 from berlin_clock import __version__
 
 
@@ -34,35 +35,36 @@ def parse_args(argv):
     return parser.parse_args(argv[1:])
 
 
-def print_berlin_clock(time):
+def print_berlin_clock(berlin_clock: bc.BerlinClock):
     """
-    Prints a representation of the given time similar to The Berlin Uhr. On the
-    top of the berlin uhr there is a yellow lamp that blinks on/off every two
-    seconds. The time is calculated by adding turned on lamps.
-
-    The top two rows of lamps are red. These indicate the hours of a day. In
-    the top row there are 4 red lamps. Every lamp represents 5 hours. In the
-    lower row of red lamps every lamp represents 1 hour. So if two lamps of the
-    first row and three of the second row are switched on that indicates
-    5+5+3=13h or 1 pm.
-
-    The two rows of lamps at the bottom count the minutes. The first of these
-    rows has 11 lamps, the second 4. In the first row every lamp represents 5
-    minutes. In this first row the 3rd, 6th and 9th lamp are red and indicate
-    the first quarter, half and last quarter of an hour. The other lamps are
-    yellow. In the last row with 4 lamps every lamp represents 1 minute.
-
-    The lamps are switched on from left to right.
+    Prints a representation of the given berlin clock to the terminal
+    using the following characters to represent lamps:
 
     Y = Yellow
     R = Red
     O = Off
 
 
-    :param time: A datetime object for the time to be displayed.
+    :param berlin_clock: The berlin clock object for the time to be displayed.
     """
-    # TODO This only displays the time in a conventional format.
-    print("Current Time =", time.strftime("%H:%M:%S"))
+
+    def light_char(light):
+        if not light.on:
+            return "O"
+        if light.color == bc.Color.YELLOW:
+            return "Y"
+        if light.color == bc.Color.RED:
+            return "R"
+        raise ValueError("Unexpected light format")
+
+    print(light_char(berlin_clock.top_light))
+    for row in [
+        berlin_clock.first_row,
+        berlin_clock.second_row,
+        berlin_clock.third_row,
+        berlin_clock.last_row,
+    ]:
+        print("".join([light_char(l) for l in row]))
 
 
 def run_berlin_clock(args):
@@ -71,10 +73,12 @@ def run_berlin_clock(args):
 
     :param args: argparse namespace of the command line arguments.
     """
+    berlin_clock = bc.BerlinClock()
     scheduler = sched.scheduler(time.time, time.sleep)
 
     def event_loop():
-        print_berlin_clock(datetime.now())
+        berlin_clock.set_time(datetime.now())
+        print_berlin_clock(berlin_clock)
         scheduler.enter(1, 1, event_loop)
 
     scheduler.enter(1, 1, event_loop)
